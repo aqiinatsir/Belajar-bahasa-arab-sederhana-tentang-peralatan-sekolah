@@ -1,0 +1,309 @@
+<!doctype html>
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Kuis Peralatan Sekolah</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Noto+Naskh+Arabic:wght@400;700&display=swap">
+<style>
+/* Tata letak: satu kolom sempit, soal di atas, skor di bawah. */
+:root {
+  --bg: #f6f5f1;
+  --surface: #ffffff;
+  --fg: #1d1d1b;
+  --muted: #6b6a64;
+  --line: #e2e0d8;
+  --accent: #1f6b5c;
+  --accent-fg: #ffffff;
+  --good: #1f7a3d;
+  --good-bg: #e3f3e8;
+  --bad: #a3322a;
+  --bad-bg: #f8e4e1;
+  --font-ar: "Noto Naskh Arabic", "Traditional Arabic", serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #161715;
+    --surface: #1f201d;
+    --fg: #ecebe6;
+    --muted: #9c9b93;
+    --line: #34352f;
+    --accent: #6fc2ad;
+    --accent-fg: #0f1412;
+    --good: #7fd49a;
+    --good-bg: #1d3327;
+    --bad: #f0a097;
+    --bad-bg: #3a201d;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #161715;
+  --surface: #1f201d;
+  --fg: #ecebe6;
+  --muted: #9c9b93;
+  --line: #34352f;
+  --accent: #6fc2ad;
+  --accent-fg: #0f1412;
+  --good: #7fd49a;
+  --good-bg: #1d3327;
+  --bad: #f0a097;
+  --bad-bg: #3a201d;
+  color-scheme: dark;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 24px 40px;
+}
+main { max-width: 640px; margin: 0 auto; }
+header { margin-bottom: 20px; }
+h1 { font-size: 1.5rem; margin: 0 0 4px; text-wrap: balance; }
+.sub { color: var(--muted); margin: 0; font-size: 0.95rem; }
+
+.ar-title {
+  font-family: var(--font-ar);
+  font-size: 1.6rem;
+  color: var(--accent);
+  margin: 0;
+  direction: rtl;
+  text-align: right;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  min-width: 0;
+}
+.qno {
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 8px;
+}
+.qtext {
+  font-family: var(--font-ar);
+  font-size: 1.35rem;
+  direction: rtl;
+  text-align: right;
+  margin: 0 0 14px;
+  line-height: 1.8;
+}
+.word { font-family: var(--font-ar); font-weight: 700; }
+
+.opts { display: grid; gap: 8px; }
+.opt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 14px;
+  cursor: pointer;
+  min-width: 0;
+}
+.opt:hover:not(:disabled) { border-color: var(--accent); }
+.opt:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.letter {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  display: grid;
+  place-items: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.opt-text { overflow-wrap: anywhere; }
+.opt.correct { background: var(--good-bg); border-color: var(--good); color: var(--good); }
+.opt.wrong { background: var(--bad-bg); border-color: var(--bad); color: var(--bad); }
+.opt:disabled { cursor: default; }
+
+.feedback { min-height: 1.5em; margin: 12px 0 0; font-weight: 600; }
+.feedback.good { color: var(--good); }
+.feedback.bad { color: var(--bad); }
+
+.nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 4px; }
+button.primary, button.ghost {
+  font: inherit;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 10px 16px;
+  cursor: pointer;
+  border: 1px solid var(--accent);
+}
+button.primary { background: var(--accent); color: var(--accent-fg); }
+button.ghost { background: transparent; color: var(--accent); }
+button:disabled { opacity: 0.45; cursor: default; }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.progress {
+  height: 6px;
+  background: var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.progress > span { display: block; height: 100%; background: var(--accent); width: 0; }
+
+.result h2 { margin: 0 0 6px; font-size: 1.3rem; }
+.score { font-size: 2.4rem; font-weight: 600; margin: 0; color: var(--accent); }
+.result p { margin: 8px 0 16px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .progress > span { transition: width 0.3s ease; }
+}
+</style>
+
+<main>
+  <header>
+    <p class="ar-title">الأَدَوَات المَدْرَسِيَّة</p>
+    <h1>Kuis Peralatan Sekolah</h1>
+    <p class="sub">10 soal pilihan ganda. Pilih satu jawaban untuk melihat hasilnya.</p>
+  </header>
+
+  <div class="progress" aria-hidden="true"><span id="bar"></span></div>
+
+  <section class="card" id="quiz" aria-live="polite">
+    <p class="qno" id="qno"></p>
+    <p class="qtext" id="qtext"></p>
+    <div class="opts" id="opts" role="group" aria-label="Pilihan jawaban"></div>
+    <p class="feedback" id="feedback"></p>
+    <div class="nav">
+      <button class="ghost" id="prev" type="button">Sebelumnya</button>
+      <button class="primary" id="next" type="button" disabled>Berikutnya</button>
+    </div>
+  </section>
+
+  <section class="card result" id="result" hidden>
+    <h2>Selesai</h2>
+    <p class="score" id="score"></p>
+    <p id="summary"></p>
+    <button class="primary" id="restart" type="button">Ulangi kuis</button>
+  </section>
+</main>
+
+<script>
+const QUESTIONS = [
+  { q: "ما اسم هذا؟ — «كِتَاب»", word: "كِتَاب", options: ["Pensil", "Buku", "Penghapus", "Tas"], answer: 1 },
+  { q: "«قَلَم» artinya...", word: "قَلَم", options: ["Penggaris", "Buku", "Pensil", "Pulpen"], answer: 3 },
+  { q: "«مِمْحَاة» artinya...", word: "مِمْحَاة", options: ["Penghapus", "Penggaris", "Rautan", "Kertas"], answer: 0 },
+  { q: "«مِسْطَرَة» artinya...", word: "مِسْطَرَة", options: ["Gunting", "Penggaris", "Lem", "Tas"], answer: 1 },
+  { q: "«حَقِيبَة» artinya...", word: "حَقِيبَة", options: ["Meja", "Kursi", "Tas", "Papan tulis"], answer: 2 },
+  { q: "«دَفْتَر» artinya...", word: "دَفْتَر", options: ["Buku tulis", "Pensil", "Spidol", "Jam"], answer: 0 },
+  { q: "«مِقَص» artinya...", word: "مِقَص", options: ["Gunting", "Lem", "Penghapus", "Penggaris"], answer: 0 },
+  { q: "«قَلَم رَصَاص» artinya...", word: "قَلَم رَصَاص", options: ["Pulpen", "Pensil", "Spidol", "Kapur"], answer: 1 },
+  { q: "«سَبُّورَة» artinya...", word: "سَبُّورَة", options: ["Papan tulis", "Pintu", "Jendela", "Meja"], answer: 0 },
+  { q: "«مِبْرَاة» artinya...", word: "مِبْرَاة", options: ["Rautan", "Kertas", "Tas", "Penggaris"], answer: 0 }
+];
+
+const LETTERS = ["A", "B", "C", "D"];
+const state = { index: 0, picks: Array(QUESTIONS.length).fill(null) };
+
+const el = {
+  qno: document.getElementById("qno"),
+  qtext: document.getElementById("qtext"),
+  opts: document.getElementById("opts"),
+  feedback: document.getElementById("feedback"),
+  prev: document.getElementById("prev"),
+  next: document.getElementById("next"),
+  bar: document.getElementById("bar"),
+  quiz: document.getElementById("quiz"),
+  result: document.getElementById("result"),
+  score: document.getElementById("score"),
+  summary: document.getElementById("summary"),
+  restart: document.getElementById("restart"),
+};
+
+function render() {
+  const item = QUESTIONS[state.index];
+  const pick = state.picks[state.index];
+  const answered = pick !== null;
+
+  el.qno.textContent = `Soal ${state.index + 1} dari ${QUESTIONS.length}`;
+  el.qtext.innerHTML = item.q.replace(item.word, `<span class="word">${item.word}</span>`);
+  el.bar.style.width = `${(state.index / QUESTIONS.length) * 100}%`;
+
+  el.opts.innerHTML = "";
+  item.options.forEach((text, i) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "opt";
+    btn.disabled = answered;
+    if (answered) {
+      if (i === item.answer) btn.classList.add("correct");
+      else if (i === pick) btn.classList.add("wrong");
+    }
+    btn.innerHTML = `<span class="letter">${LETTERS[i]}</span><span class="opt-text"></span>`;
+    btn.querySelector(".opt-text").textContent = text;
+    btn.addEventListener("click", () => choose(i));
+    el.opts.appendChild(btn);
+  });
+
+  if (answered) {
+    const ok = pick === item.answer;
+    el.feedback.textContent = ok
+      ? "Benar."
+      : `Kurang tepat. Jawaban yang benar: ${item.options[item.answer]}.`;
+    el.feedback.className = `feedback ${ok ? "good" : "bad"}`;
+  } else {
+    el.feedback.textContent = "";
+    el.feedback.className = "feedback";
+  }
+
+  el.prev.disabled = state.index === 0;
+  el.next.disabled = !answered;
+  el.next.textContent = state.index === QUESTIONS.length - 1 ? "Lihat hasil" : "Berikutnya";
+}
+
+function choose(i) {
+  if (state.picks[state.index] !== null) return;
+  state.picks[state.index] = i;
+  render();
+}
+
+function showResult() {
+  const correct = state.picks.reduce(
+    (n, p, i) => n + (p === QUESTIONS[i].answer ? 1 : 0), 0
+  );
+  el.quiz.hidden = true;
+  el.result.hidden = false;
+  el.bar.style.width = "100%";
+  el.score.textContent = `${correct} / ${QUESTIONS.length}`;
+  el.summary.textContent = correct === QUESTIONS.length
+    ? "Semua jawaban benar. Mantap."
+    : `Kamu menjawab ${correct} soal dengan benar.`;
+  el.result.focus?.();
+}
+
+el.prev.addEventListener("click", () => {
+  if (state.index > 0) { state.index--; render(); }
+});
+el.next.addEventListener("click", () => {
+  if (state.index < QUESTIONS.length - 1) { state.index++; render(); }
+  else showResult();
+});
+el.restart.addEventListener("click", () => {
+  state.index = 0;
+  state.picks = Array(QUESTIONS.length).fill(null);
+  el.quiz.hidden = false;
+  el.result.hidden = true;
+  render();
+});
+
+render();
+</script>
