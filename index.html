@@ -1,9 +1,10 @@
 <!doctype html>
-<meta name="claude:viewport-fit-sides" content="cover">
+<html lang="id">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Kuis Peralatan Sekolah</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Noto+Naskh+Arabic:wght@400;700&display=swap">
 <style>
-/* Tata letak: satu kolom sempit, soal di atas, skor di bawah. */
 :root {
   --bg: #f6f5f1;
   --surface: #ffffff;
@@ -50,6 +51,7 @@
   --bad-bg: #3a201d;
   color-scheme: dark;
 }
+
 body {
   margin: 0;
   background: var(--bg);
@@ -64,7 +66,6 @@ main { max-width: 640px; margin: 0 auto; }
 header { margin-bottom: 20px; }
 h1 { font-size: 1.5rem; margin: 0 0 4px; text-wrap: balance; }
 .sub { color: var(--muted); margin: 0; font-size: 0.95rem; }
-
 .ar-title {
   font-family: var(--font-ar);
   font-size: 1.6rem;
@@ -89,6 +90,13 @@ h1 { font-size: 1.5rem; margin: 0 0 4px; text-wrap: balance; }
   color: var(--muted);
   margin: 0 0 8px;
 }
+.qimg {
+  display: flex;
+  justify-content: center;
+  color: var(--accent);
+  margin: 0 0 14px;
+}
+.qimg svg { width: 120px; max-width: 100%; height: auto; }
 .qtext {
   font-family: var(--font-ar);
   font-size: 1.35rem;
@@ -128,7 +136,12 @@ h1 { font-size: 1.5rem; margin: 0 0 4px; text-wrap: balance; }
   font-size: 0.85rem;
   font-weight: 600;
 }
-.opt-text { overflow-wrap: anywhere; }
+.opt-text {
+  font-family: var(--font-ar);
+  font-size: 1.15rem;
+  direction: rtl;
+  overflow-wrap: anywhere;
+}
 .opt.correct { background: var(--good-bg); border-color: var(--good); color: var(--good); }
 .opt.wrong { background: var(--bad-bg); border-color: var(--bad); color: var(--bad); }
 .opt:disabled { cursor: default; }
@@ -180,6 +193,7 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   <section class="card" id="quiz" aria-live="polite">
     <p class="qno" id="qno"></p>
+    <div class="qimg" id="qimg"></div>
     <p class="qtext" id="qtext"></p>
     <div class="opts" id="opts" role="group" aria-label="Pilihan jawaban"></div>
     <p class="feedback" id="feedback"></p>
@@ -198,17 +212,88 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 </main>
 
 <script>
+// Gambar dibuat dari SVG sederhana (tanpa unduhan), jadi tampil tanpa internet.
+const SVG = (body) =>
+  `<svg viewBox="0 0 120 120" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">${body}</svg>`;
+
+const ICONS = {
+  buku: SVG(`
+    <rect x="28" y="20" width="64" height="82" rx="4"/>
+    <line x1="40" y1="20" x2="40" y2="102"/>
+    <line x1="50" y1="42" x2="82" y2="42" stroke-width="3"/>
+    <line x1="50" y1="56" x2="82" y2="56" stroke-width="3"/>
+    <line x1="50" y1="70" x2="74" y2="70" stroke-width="3"/>`),
+  pulpen: SVG(`
+    <g transform="rotate(45 60 60)">
+      <rect x="52" y="10" width="16" height="72" rx="3"/>
+      <polygon points="52,82 68,82 60,104"/>
+      <line x1="52" y1="22" x2="68" y2="22" stroke-width="3"/>
+    </g>`),
+  pensil: SVG(`
+    <g transform="rotate(45 60 60)">
+      <rect x="52" y="10" width="16" height="72"/>
+      <line x1="52" y1="20" x2="68" y2="20"/>
+      <polygon points="52,82 68,82 60,104"/>
+      <polygon points="57,94 63,94 60,102" fill="currentColor"/>
+    </g>`),
+  penghapus: SVG(`
+    <g transform="rotate(-20 60 60)">
+      <rect x="30" y="42" width="60" height="36" rx="5"/>
+      <line x1="60" y1="42" x2="60" y2="78" stroke-width="3"/>
+    </g>`),
+  penggaris: SVG(`
+    <rect x="10" y="48" width="100" height="22" rx="2"/>
+    <line x1="20" y1="48" x2="20" y2="56" stroke-width="3"/>
+    <line x1="30" y1="48" x2="30" y2="54" stroke-width="3"/>
+    <line x1="40" y1="48" x2="40" y2="56" stroke-width="3"/>
+    <line x1="50" y1="48" x2="50" y2="54" stroke-width="3"/>
+    <line x1="60" y1="48" x2="60" y2="56" stroke-width="3"/>
+    <line x1="70" y1="48" x2="70" y2="54" stroke-width="3"/>
+    <line x1="80" y1="48" x2="80" y2="56" stroke-width="3"/>
+    <line x1="90" y1="48" x2="90" y2="54" stroke-width="3"/>
+    <line x1="100" y1="48" x2="100" y2="56" stroke-width="3"/>`),
+  tas: SVG(`
+    <path d="M42 46 V34 Q42 22 60 22 Q78 22 78 34 V46"/>
+    <rect x="26" y="46" width="68" height="60" rx="12"/>
+    <rect x="40" y="70" width="40" height="26" rx="5" stroke-width="3"/>`),
+  bukuTulis: SVG(`
+    <rect x="32" y="18" width="56" height="84" rx="4"/>
+    <circle cx="32" cy="30" r="3" fill="currentColor"/>
+    <circle cx="32" cy="50" r="3" fill="currentColor"/>
+    <circle cx="32" cy="70" r="3" fill="currentColor"/>
+    <circle cx="32" cy="90" r="3" fill="currentColor"/>
+    <line x1="44" y1="44" x2="78" y2="44" stroke-width="2.5"/>
+    <line x1="44" y1="58" x2="78" y2="58" stroke-width="2.5"/>
+    <line x1="44" y1="72" x2="78" y2="72" stroke-width="2.5"/>`),
+  gunting: SVG(`
+    <circle cx="40" cy="84" r="12"/>
+    <circle cx="80" cy="84" r="12"/>
+    <line x1="48" y1="76" x2="88" y2="16"/>
+    <line x1="72" y1="76" x2="32" y2="16"/>`),
+  papanTulis: SVG(`
+    <rect x="14" y="20" width="92" height="64" rx="4"/>
+    <path d="M30 40 H60 M30 52 H80" stroke-width="3"/>
+    <line x1="30" y1="84" x2="90" y2="84" stroke-width="5"/>
+    <line x1="36" y1="84" x2="30" y2="104"/>
+    <line x1="84" y1="84" x2="90" y2="104"/>`),
+  rautan: SVG(`
+    <rect x="28" y="40" width="64" height="40" rx="6"/>
+    <circle cx="60" cy="60" r="14" stroke-width="3"/>
+    <polygon points="56,52 64,52 60,66" fill="currentColor"/>`),
+};
+
+// Jawaban pilihan sekarang dalam bahasa Arab. Kunci jawaban (answer) tidak berubah.
 const QUESTIONS = [
-  { q: "ما اسم هذا؟ — «كِتَاب»", word: "كِتَاب", options: ["Pensil", "Buku", "Penghapus", "Tas"], answer: 1 },
-  { q: "«قَلَم» artinya...", word: "قَلَم", options: ["Penggaris", "Buku", "Pensil", "Pulpen"], answer: 3 },
-  { q: "«مِمْحَاة» artinya...", word: "مِمْحَاة", options: ["Penghapus", "Penggaris", "Rautan", "Kertas"], answer: 0 },
-  { q: "«مِسْطَرَة» artinya...", word: "مِسْطَرَة", options: ["Gunting", "Penggaris", "Lem", "Tas"], answer: 1 },
-  { q: "«حَقِيبَة» artinya...", word: "حَقِيبَة", options: ["Meja", "Kursi", "Tas", "Papan tulis"], answer: 2 },
-  { q: "«دَفْتَر» artinya...", word: "دَفْتَر", options: ["Buku tulis", "Pensil", "Spidol", "Jam"], answer: 0 },
-  { q: "«مِقَص» artinya...", word: "مِقَص", options: ["Gunting", "Lem", "Penghapus", "Penggaris"], answer: 0 },
-  { q: "«قَلَم رَصَاص» artinya...", word: "قَلَم رَصَاص", options: ["Pulpen", "Pensil", "Spidol", "Kapur"], answer: 1 },
-  { q: "«سَبُّورَة» artinya...", word: "سَبُّورَة", options: ["Papan tulis", "Pintu", "Jendela", "Meja"], answer: 0 },
-  { q: "«مِبْرَاة» artinya...", word: "مِبْرَاة", options: ["Rautan", "Kertas", "Tas", "Penggaris"], answer: 0 }
+  { q: "Benda ini biasa dibawa setiap hari ke sekolah dan berisi halaman-halaman tulisan. Apa nama benda ini dalam bahasa Arab?", word: "كِتَاب", icon: ICONS.buku, options: ["قَلَم رَصَاص", "كِتَاب", "مِمْحَاة", "حَقِيبَة"], answer: 1 },
+  { q: "«قَلَم» adalah alat tulis yang berisi tinta dan sering dipakai untuk menulis. Apa arti kata tersebut dalam bahasa Indonesia?", word: "قَلَم", icon: ICONS.pulpen, options: ["مِسْطَرَة", "كِتَاب", "قَلَم رَصَاص", "قَلَم حِبْر"], answer: 3 },
+  { q: "Saat salah menulis, kamu perlu benda bernama «مِمْحَاة» untuk menghapus tulisan pensil. Apa arti kata tersebut?", word: "مِمْحَاة", icon: ICONS.penghapus, options: ["مِمْحَاة", "مِسْطَرَة", "مِبْرَاة", "وَرَقَة"], answer: 0 },
+  { q: "Untuk membuat garis lurus di buku, kamu bisa memakai «مِسْطَرَة». Apa arti kata tersebut dalam bahasa Indonesia?", word: "مِسْطَرَة", icon: ICONS.penggaris, options: ["مِقَص", "مِسْطَرَة", "صَمْغ", "حَقِيبَة"], answer: 1 },
+  { q: "Setiap pagi kamu membawa buku dan alat tulis ke sekolah menggunakan «حَقِيبَة». Apa arti kata tersebut?", word: "حَقِيبَة", icon: ICONS.tas, options: ["طَاوِلَة", "كُرْسِيّ", "حَقِيبَة", "سَبُّورَة"], answer: 2 },
+  { q: "Untuk mencatat pelajaran di kelas, kamu biasanya membawa «دَفْتَر». Apa arti kata tersebut dalam bahasa Indonesia?", word: "دَفْتَر", icon: ICONS.bukuTulis, options: ["دَفْتَر", "قَلَم رَصَاص", "قَلَم تَحْدِيد", "سَاعَة"], answer: 0 },
+  { q: "Kertas atau kain yang ingin kamu potong bisa dipotong dengan «مِقَص». Apa arti kata tersebut?", word: "مِقَص", icon: ICONS.gunting, options: ["مِقَص", "صَمْغ", "مِمْحَاة", "مِسْطَرَة"], answer: 0 },
+  { q: "Alat tulis berisi grafit yang dipakai untuk menulis dan menggambar disebut «قَلَم رَصَاص». Apa arti kata tersebut?", word: "قَلَم رَصَاص", icon: ICONS.pensil, options: ["قَلَم حِبْر", "قَلَم رَصَاص", "قَلَم تَحْدِيد", "طَبَاشِير"], answer: 1 },
+  { q: "Di depan kelas, guru biasanya menulis materi pelajaran di «سَبُّورَة». Apa arti kata tersebut dalam bahasa Indonesia?", word: "سَبُّورَة", icon: ICONS.papanTulis, options: ["سَبُّورَة", "بَاب", "نَافِذَة", "طَاوِلَة"], answer: 0 },
+  { q: "Pensil yang sudah tumpul bisa dibuat runcing lagi dengan «مِبْرَاة». Apa arti kata tersebut?", word: "مِبْرَاة", icon: ICONS.rautan, options: ["مِبْرَاة", "وَرَقَة", "حَقِيبَة", "مِسْطَرَة"], answer: 0 },
 ];
 
 const LETTERS = ["A", "B", "C", "D"];
@@ -216,6 +301,7 @@ const state = { index: 0, picks: Array(QUESTIONS.length).fill(null) };
 
 const el = {
   qno: document.getElementById("qno"),
+  qimg: document.getElementById("qimg"),
   qtext: document.getElementById("qtext"),
   opts: document.getElementById("opts"),
   feedback: document.getElementById("feedback"),
@@ -235,6 +321,7 @@ function render() {
   const answered = pick !== null;
 
   el.qno.textContent = `Soal ${state.index + 1} dari ${QUESTIONS.length}`;
+  el.qimg.innerHTML = item.icon;
   el.qtext.innerHTML = item.q.replace(item.word, `<span class="word">${item.word}</span>`);
   el.bar.style.width = `${(state.index / QUESTIONS.length) * 100}%`;
 
@@ -287,7 +374,6 @@ function showResult() {
   el.summary.textContent = correct === QUESTIONS.length
     ? "Semua jawaban benar. Mantap."
     : `Kamu menjawab ${correct} soal dengan benar.`;
-  el.result.focus?.();
 }
 
 el.prev.addEventListener("click", () => {
@@ -307,3 +393,4 @@ el.restart.addEventListener("click", () => {
 
 render();
 </script>
+</html>
